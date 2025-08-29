@@ -1,32 +1,30 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BadRequestError } from "../utils/CustomError.js";
 import User from "../models/user.model.js";
 import Wallet from "../models/wallet.model.js";
 import type { Types } from "mongoose";
-
+import type { CreateUserDTO } from "../types/user.types.js";
+import logger from "../utils/logger.js";
 
 /**
- * 
- * @param req 
- * @param res 
+ *
+ * @param req
+ * @param res
  */
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async ( req: Request, res: Response, next: NextFunction ) => {
   try {
+    const { email, inviteCode }: CreateUserDTO = req.body;
 
-    const {phone, inviteCode, friends, expoPushTokens} = req.body;
-
-    if(!phone || phone === ""){
-            throw new BadRequestError("Invalid Mobile Number")
-      }
-      if(!inviteCode || inviteCode === ""){
-            throw new BadRequestError("Invalid Code")
-      }
+    if (!email || email === "") {
+      return next(new BadRequestError("Invalid Email"));
+    }
+    if (!inviteCode || inviteCode === "") {
+      return next(new BadRequestError("Invalid Code"));
+    }
     const user = new User({
-      phone: phone,
+      email: email,
       inviteCode: inviteCode,
-      friends: friends || [],
-      expoPushTokens: expoPushTokens || [],
       // inviteQuota is default set
     });
 
@@ -46,8 +44,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     res.status(201).json({ user, wallet });
   } catch (err) {
+    logger.error(`Error Creating User: ${err}`)
     res.status(400).json({ message: "Error creating user", error: err });
   }
 };
-
-

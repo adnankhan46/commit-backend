@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IUser extends Document {
+  email: string;
   phone: string;
   inviteCode: string;
   inviteQuota: number;
@@ -11,7 +12,8 @@ export interface IUser extends Document {
 
 const UserSchema: Schema<IUser> = new Schema(
   {
-    phone: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, unique: false }, // for now decided using email only
     inviteCode: { type: String, required: true },
     inviteQuota: { type: Number, default: 5 },
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],

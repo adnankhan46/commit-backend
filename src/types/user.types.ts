@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export interface UserDTO {
+  email: string;
   phone: string;
   inviteCode: string;
   inviteQuota: number;
@@ -10,13 +11,15 @@ export interface UserDTO {
 }
 
 export interface CreateUserDTO {
-  phone: string;
+  email: string;
+  // phone: string;
   inviteCode: string;
 }
 
 export interface UserResponse {
   id: string;
   phone: string;
+  email: string;
   inviteCode: string;
   inviteQuota: number;
   friends: string[];

@@ -1,12 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import {
-  BadRequestError,
   BadTokenError,
   InternalError,
   NotFoundError,
 } from "../utils/CustomError.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
+import logger from "../utils/logger.js";
 
 export const getUser = async ( req: Request, res: Response, next: NextFunction) => 
     {
@@ -22,7 +22,7 @@ export const getUser = async ( req: Request, res: Response, next: NextFunction) 
     }
     res.json(user);
   } catch (error) {
-    console.log(`Internal Error: ${error}`);
+    logger.error(`Internal Error: ${error}`)
     throw new InternalError(`Internal Error`);
   }
 };
