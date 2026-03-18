@@ -1,36 +1,43 @@
+import { z } from "zod";
 import dotenv from "dotenv";
 import logger from "../utils/logger.js";
 
 dotenv.config();
 
-const config: { [key: string]: string | undefined } = {
-  MONGO: process.env.MONGO as string,
-  PORT: process.env.PORT as string,
-  JWT_SECRET: process.env.JWT_SECRET as string,
-//   DODO_TOKEN: process.env.DODO_TOKEN,
-//   DODO_WEBHOOK_TOKEN: process.env.DODO_WEBHOOK_TOKEN,
-  FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN as string,
-  ENVIRONMENT: process.env.ENVIRONMENT as string,
-};
+const envSchema = z.object({
+  PORT: z.string().default("3000"),
+  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  REDIS_URL: z.string().min(1, "REDIS_URL is required"),
+  JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
 
-// ENV Validation
+  // Email — Resend
+  RESEND_API: z.string().min(1, "RESEND_API is required"),
+  EMAIL_FROM: z.string().default("noreply@commit.app"),
 
-const requiredVars = [
-  'MONGO',
-  'PORT',
-  'JWT_SECRET', 
-  'FRONTEND_ORIGIN',
-  'ENVIRONMENT'
-];
+  // Cloudinary
+  CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
+  CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
+  CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
 
-const missingVars = requiredVars.filter((key:string) => !config[key]);
+  // Groq AI
+  GROQ_API: z.string().min(1, "GROQ_API is required"),
 
-if (missingVars.length > 0) {
-  const errorMessage = `[ENV-ERROR]: Missing required env: ${missingVars.join(', ')}`;
-  logger.error(errorMessage);
-  process.exit(1); 
+  // Expo push notifications
+  EXPO_ACCESS_TOKEN: z.string().optional().default(""),
+
+  // Admin
+  ADMIN_EMAILS: z.string().min(1, "ADMIN_EMAILS is required"),
+  ADMIN_INVITE_CODE: z.string().default("COMMIT-ADMIN"),
+});
+
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  logger.error("[ENV]: Missing or invalid environment variables:");
+  logger.error(JSON.stringify(parsed.error.flatten().fieldErrors, null, 2));
+  process.exit(1);
 }
 
-logger.info('[ENV]: All env are properly defined');
+logger.info("[ENV]: All required env vars present");
 
-export default config;
+export default parsed.data;

@@ -4,18 +4,19 @@ import morgan from "morgan";
 
 import { ApiError, ErrorType } from "./utils/ApiError.js";
 import { InternalError, NotFoundError } from "./utils/CustomError.js";
-
-//config
-import config from "./config/env.js";
-import connectDB from "./config/db.js";
+import { connectDB } from "./db/index.js";
 import logger from "./utils/logger.js";
 
-// central routes file
-import routes from "./routes/index.js"
+// Module routes
+import authRoutes from "./modules/auth/auth.routes.js";
+import userRoutes from "./modules/user/user.routes.js";
+import walletRoutes from "./modules/wallet/wallet.routes.js";
+import commitmentRoutes from "./modules/commitment/commitment.routes.js";
+import { protect } from "./middlewares/auth.js";
 
 const app: Application = express();
 
-// db
+// DB
 connectDB();
 
 // Middlewares
@@ -23,38 +24,33 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
+// Health check
+app.get("/health", (_req, res) => res.json({ ok: true, service: "commit-backend" }));
+
 // Routes
-app.use("/", routes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/user", protect, userRoutes);
+app.use("/api/v1/wallet", protect, walletRoutes);
+app.use("/api/v1/commitment", protect, commitmentRoutes);
 
-// test routes
-app.get("/hello", (_, res: Response) => { res.json({ message: "Hello from Commit" }); });
+// 404
+app.use((_req: Request, _res: Response, next: NextFunction) => {
+  next(new NotFoundError("Route not found"));
+});
 
-// route not found
-app.use((_req: Request, res: Response) => { throw new NotFoundError });
-
-// Error Handler
-app.use((err:Error, req:Request, res: Response, next: NextFunction)=>{
-  if(err instanceof ApiError){
-    ApiError.handle(err, res)
-
-    if(err.type === ErrorType.INTERNAL){
-      logger.error(`
-        500 - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}
-        `)
-    } else {
-      logger.error(`
-        500 - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}
-        `)
-      }
-      logger.error(err.stack)
-
-      if(config.ENVIRONMENT){
-        res.status(500).json({
-          message: err.message, stack: err.stack
-        })
-      }
-      ApiError.handle(new InternalError(), res)
+// Global error handler
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  if (err instanceof ApiError) {
+    if (err.type === ErrorType.INTERNAL) {
+      logger.error(`500 - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
+      logger.error(err.stack);
+    }
+    return ApiError.handle(err, res);
   }
-})
+
+  logger.error(`Unhandled: ${err.message} - ${req.originalUrl} - ${req.method}`);
+  logger.error(err.stack);
+  ApiError.handle(new InternalError(), res);
+});
 
 export default app;

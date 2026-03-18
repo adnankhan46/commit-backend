@@ -11,7 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
-ignoreFiles
+developer-related-files
+developer-related-files/*
+developer-markdown
+developer-markdown/*
 
 # Editor directories and files
 .vscode/*

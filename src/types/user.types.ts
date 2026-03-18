@@ -1,28 +1,27 @@
-import { Types } from "mongoose";
-
-export interface UserDTO {
-  email: string;
-  phone: string;
-  inviteCode: string;
-  inviteQuota: number;
-  friends: Types.ObjectId[];
-  walletId?: Types.ObjectId;
-  expoPushTokens: string[];
-}
-
 export interface CreateUserDTO {
   email: string;
-  // phone: string;
-  inviteCode: string;
+  inviteCode: string; // the invite code they used to join
 }
 
-export interface UserResponse {
-  id: string;
-  phone: string;
+export interface RequestOtpDTO {
   email: string;
-  inviteCode: string;
+  inviteCode?: string; // required only for new users
+}
+
+export interface VerifyOtpDTO {
+  email: string;
+  otp: string;
+}
+
+export interface UpdateUserDTO {
+  expoPushTokens?: string[];
+}
+
+export interface UserPublicProfile {
+  id: string;
+  email: string;
+  myInviteCode: string;
   inviteQuota: number;
-  friends: string[];
-  walletId?: string;
-  expoPushTokens: string[];
+  isAdmin: boolean;
+  createdAt: Date;
 }

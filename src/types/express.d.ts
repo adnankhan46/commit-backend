@@ -1,16 +1,9 @@
-import { IUser } from "../models/User";
+import type { User } from "../db/schema/users.js";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser; // set by auth middleware
+      user?: User;
     }
   }
 }
-
-/**
- * learning: in controllers, safely do:
-  if (req.user) {
-  console.log(req.user.phone);
-}
- */
