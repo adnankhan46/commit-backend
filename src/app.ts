@@ -7,6 +7,10 @@ import { InternalError, NotFoundError } from "./utils/CustomError.js";
 import { connectDB } from "./db/index.js";
 import logger from "./utils/logger.js";
 
+
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger.js";
+
 // Module routes
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
@@ -23,6 +27,9 @@ connectDB();
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
+
+// Docs Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
 app.get("/health", (_req, res) => res.json({ ok: true, service: "commit-backend" }));
